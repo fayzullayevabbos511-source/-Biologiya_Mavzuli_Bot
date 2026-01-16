@@ -1,0 +1,29 @@
+import asyncio
+from aiogram import Bot, Dispatcher, types
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
+
+# Tokeningiz
+TOKEN = "8463539277:AAFz2ZiGoUU5tCwjyD7RPYsgUMMvF7gXV5I"
+
+# GitHub havolangiz
+URL = "https://fayzullayevabbos511-source.github.io/-Biologiya_Mavzuli_Bot/"
+
+bot = Bot(token=TOKEN)
+dp = Dispatcher()
+
+@dp.message()
+async def start_handler(message: types.Message):
+    if message.text == "/start":
+        # Bot menyusidagi WebApp tugmasi
+        kb = [
+            [KeyboardButton(text="📝 Testni boshlash", web_app=WebAppInfo(url=URL))]
+        ]
+        markup = ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
+        await message.answer("Botingiz muvaffaqiyatli ulandi! ✅\nTestni boshlash uchun quyidagi tugmani bosing:", reply_markup=markup)
+
+async def main():
+    print("Bot ishga tushdi... Telegramga o'tib tekshiring!")
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
