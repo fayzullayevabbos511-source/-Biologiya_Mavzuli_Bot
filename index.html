@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biologiya 5-sinf Test</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f4f8; margin: 0; padding: 15px; }
+        .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        .question { font-size: 16px; font-weight: bold; color: #2c3e50; margin-bottom: 20px; line-height: 1.5; white-space: pre-line; }
+        .option { display: block; width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #eee; border-radius: 10px; background: #fff; text-align: left; cursor: pointer; transition: 0.3s; font-size: 14px; }
+        .correct { background-color: #2ecc71 !important; color: white !important; border-color: #27ae60 !important; }
+        .wrong { background-color: #e74c3c !important; color: white !important; border-color: #c0392b !important; }
+        .hidden { display: none; }
+        .result-screen { text-align: center; }
+        .res-text { font-size: 22px; font-weight: bold; margin: 10px 0; }
+        .btn-restart { width: 100%; padding: 15px; background: #3498db; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div id="test-container" class="card">
+        <div id="q-text" class="question"></div>
+        <div id="options-list"></div>
+        <div id="progress" style="text-align:center; color:#7f8c8d; font-size:12px; margin-top:15px;"></div>
+    </div>
+
+    <div id="result-container" class="card hidden result-screen">
+        <h2>Test Yakunlandi! 🏁</h2>
+        <div id="res-correct" class="res-text" style="color: #2ecc71;"></div>
+        <div id="res-wrong" class="res-text" style="color: #e74c3c;"></div>
+        <button class="btn-restart" onclick="location.reload()">Qaytadan boshlash</button>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        const questions = [
+            { q: "1. Abu Rayhon Beruniy «Saydana» asarida nimalar haqida ma'lumot bergan?", a: ["A) ichki kasalliklar, jarrohlik, dorishunoslik, yuqumli kasalliklar", "B) o'simlik va hayvonot olamidan hamda turli xil moddalardan tayyorlanadigan dorivor vositalar", "C) o'simlik va hayvonlarning tuzilishi, hayot tarzi, ularning o'zaro o'xshashligi va farqlari", "D) bakteriyalar, zamburug'lar, o'simliklar va hayvonot dunyosi haqida"], c: 1 },
+            { q: "2. Abu Ali ibn Sinoning «Tib qonunlari» asarida nimalar haqida ma'lumot bergan?", a: ["A) o'simlik va hayvonot olamidan hamda turli xil moddalardan tayyorlanadigan dorivor vositalar", "B) ichki kasalliklar, jarrohlik, dorishunoslik, yuqumli kasalliklar", "C) o'simlik va hayvonlarning tuzilishi, hayot tarzi, ularning o'zaro o'xshashligi va farqlari", "D) bakteriyalar, zamburug'lar, o'simliklar va hayvonot dunyosi haqida"], c: 1 },
+            { q: "3. Zahiriddin Muhammad Bobur o'zining «Boburnoma» asarida nimalar haqida ma'lumot bergan?", a: ["A) ichki kasalliklar, jarrohlik, dorishunoslik, yuqumli kasalliklar", "B) o'simlik va hayvonot olamidan hamda turli xil moddalardan tayyorlanadigan dorivor vositalar", "C) o'simlik va hayvonlarning tuzilishi, hayot tarzi, ularning o'zaro o'xshashligi va farqlari", "D) bakteriyalar, zamburug'lar, o'simliklar va hayvonot dunyosi haqida"], c: 2 },
+            { q: "4. Biologiya ..... haqidagi fan.", a: ["A) o'simliklar haqidagi fan", "B) hayvonlar haqidagi fan", "C) tiriklik, hayot haqidagi fan", "D) zamburug'lar haqidagi fan"], c: 2 },
+            { q: "5. Biologiya ..... degan ma'noni anglatadi.", a: ["A) yunoncha «bios» - hayot, «logos» - fan, ta'limot", "B) nemischa «bios» - hayot, «logos» - fan, ta'limot", "C) lotincha «bios» - hayot, «logos» - fan, ta'limot", "D) inglizcha «bios» - hayot, «logos» - fan, ta'limot"], c: 0 },
+            { q: "6. O'simliklar haqidagi fan:", a: ["A) biologiya", "B) zoologiya", "C) anatomiya", "D) botanika"], c: 3 },
+            { q: "7. Zamburug'lar haqidagi fan qaysi?", a: ["A) mikrobiologiya", "B) mikologiya", "C) sitologiya", "D) genetika"], c: 1 },
+            { q: "8. Tirik organizmning ichki tuzilishini o'rganadigan fan:", a: ["A) fiziologiya", "B) zoologiya", "C) anatomiya", "D) sistematika"], c: 2 },
+            { q: "9. Hayvonlar haqidagi fan:", a: ["A) biologiya", "B) zoologiya", "C) anatomiya", "D) botanika"], c: 1 },
+            { q: "10. Kichik jonzotlarni o'rganuvchi fan qaysi?", a: ["A) fiziologiya", "B) mikrobiologiya", "C) sitologiya", "D) mikologiya"], c: 1 },
+            { q: "11. Tirik organizmlarni o'xshash belgilariga ko'ra guruhlarga bo'lib o'rganuvchi fan qaysi?", a: ["A) sistematika", "B) ekologiya", "C) genetika", "D) fiziologiya"], c: 0 },
+            { q: "12. Hujayra haqidagi fan:", a: ["A) ekologiya", "B) biologiya", "C) sitologiya", "D) genetika"], c: 2 },
+            { q: "13. Tirik organizmda boradigan jarayonlarni o'rganadigan fan:", a: ["A) sistematika", "B) ekologiya", "C) fiziologiya", "D) genetika"], c: 2 },
+            { q: "14. Irsiyat va o'zgaruvchanlik haqidagi fan qaysi?", a: ["A) sistematika", "B) ekologiya", "C) fiziologiya", "D) genetika"], c: 3 },
+            { q: "15. Tirik organizmlarning o'zaro va tashqi muhit bilan munosabatlarini o'rganadigan fan qaysi?", a: ["A) ekologiya", "B) biologiya", "C) sitologiya", "D) genetika"], c: 0 },
+            { q: "16. «Turli kasalliklar ovqatlanish tartibining buzilishidan kelib chiqadi» degan fikrni bildirgan allomamiz kim edi?", a: ["A) Abu Ali ibn Sino", "B) Abu Rayhon Beruniy", "C) Abu Nasr Forobiy", "D) Zahiriddin Muhammad Bobur"], c: 0 },
+            { q: "17. Hozirgi kunda qanday kasalliklarni davolashda asalaris zahari, qoraqurt zahari, ayniqsa, ilon zaharidan foydalaniladi?", a: ["A) yurak va nerv", "B) shamollash va asab sistemasi", "C) ovqat hazm qilish sistemasi", "D) qon aylanish sistemasi"], c: 0 },
+            { q: "18. Qalqonsimon bez faoliyatini o'rgangan, osh tuziga yod qo'shish orqali buqoq kasalligini oldini olish usulini ishlab chiqqan olim kim?", a: ["A) Jahongir Hakimovich Hamidov", "B) Yolqin Xolmatovich To'raqulov", "C) Jo'ra Azimboyevich Musayev", "D) Muhsin Nabixonovich Valixonov"], c: 1 },
+            { q: "19. Sitologiya sohasining rivojlanishiga hissa qo'shgan olim kim?", a: ["A) Mashhura Egamovna Mavloniy", "B) Yolqin Xolmatovich To'raqulov", "C) Jahongir Hakimovich Hamidov", "D) To'raxon Uzoqovna Rahimova"], c: 2 },
+            { q: "20. Kim dunyoda birinchi bo'lib g'o'za kolleksiyasini yaratgan?", a: ["A) Jaloliddin Azimovich Azimov", "B) Yolqin Xolmatovich To'raqulov", "C) Jo'ra Azimboyevich Musayev", "D) To'raxon Uzoqovna Rahimova"], c: 2 },
+            { q: "21. G'o'za fiziologiyasini o'rgangan olim kim?", a: ["A) Jahongir Hakimovich Hamidov", "B) Yolqin Xolmatovich To'raqulov", "C) Jo'ra Azimboyevich Musayev", "D) Muhsin Nabixonovich Valixonov"], c: 1 },
+            { q: "22. O'rta Osiyoda ilk bor sanoat mikroorganizmlari kolleksiyasini yaratgan olim kim?", a: ["A) Mashhura Egamovna Mavloniy", "B) Yolqin Xolmatovich To'raqulov", "C) Jaloliddin Azimovich Azimov", "D) To'raxon Uzoqovna Rahimova"], c: 0 },
+            { q: "23. Zoologiya sohasida hayvon parazitlarini o'rgangan olim kim?", a: ["A) Yolqin Xolmatovich To'raqulov", "B) Jaloliddin Azimovich Azimov", "C) Jo'ra Azimboyevich Musayev", "D) To'raxon Uzoqovna Rahimova"], c: 1 },
+            { q: "24. O'zbekistondagi cho'l va adir o'simliklarining ekologiyasini aniqlagan olim kim?", a: ["A) Yolqin Xolmatovich To'raqulov", "B) To'raxon Uzoqovna Rahimova", "C) Mashhura Egamovna Mavloniy", "D) Jo'ra Azimboyevich Musayev"], c: 1 },
+            { 
+                q: "25. Tushunchalarni izohi bilan juftlab yozing:\n1-skalpel, 2-buyum oynasi, 3-petri idishchalari, 4-pinset, 5-pipetka, 6-probirka.\na- moddalarning xususiyatini o'rganish uchun shisha idish.\nb- suyuqlikni tomizishga yordam beradi.\nd- obyektni qisib olishda ishlatiladi.\ne- bakteriya va zamburug'larni o'stirishda qo'llaniladi.\nf- tirik obyektni mikroskopda ko'rish uchun ishlatiladi.\nh- o'tkir tig'li pichoqcha.", 
+                a: [
+                    "A) 1-h, 2-f, 3-e, 4-d, 5-b, 6-a", 
+                    "B) 1-h, 2-f, 3-e, 4-b, 5-d, 6-a", 
+                    "C) 1-h, 2-e, 3-f, 4-d, 5-b, 6-a", 
+                    "D) 1-a, 2-b, 3-d, 4-e, 5-f, 6-h"
+                ], 
+                c: 0 
+            }
+        ];
+
+        let current = 0;
+        let corrects = 0;
+        let wrongs = 0;
+
+        function render() {
+            let q = questions[current];
+            document.getElementById('q-text').innerText = q.q;
+            document.getElementById('progress').innerText = "Savol: " + (current + 1) + " / " + questions.length;
+            const optionsDiv = document.getElementById('options-list');
+            optionsDiv.innerHTML = "";
+            
+            q.a.forEach((opt, i) => {
+                let btn = document.createElement('button');
+                btn.className = 'option';
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    const allBtns = optionsDiv.querySelectorAll('.option');
+                    allBtns.forEach(b => b.style.pointerEvents = 'none');
+
+                    if(i === q.c) {
+                        btn.classList.add('correct');
+                        corrects++;
+                    } else {
+                        btn.classList.add('wrong');
+                        allBtns[q.c].classList.add('correct');
+                        wrongs++;
+                    }
+                    
+                    setTimeout(() => {
+                        if(++current < questions.length) render();
+                        else {
+                            document.getElementById('test-container').classList.add('hidden');
+                            document.getElementById('result-container').classList.remove('hidden');
+                            document.getElementById('res-correct').innerText = "✅ To'g'ri: " + corrects;
+                            document.getElementById('res-wrong').innerText = "❌ Xato: " + wrongs;
+                        }
+                    }, 1200);
+                };
+                optionsDiv.appendChild(btn);
+            });
+        }
+        render();
+    </script>
+</body>
+</html>
